@@ -1,0 +1,4 @@
+import { NextRequest } from 'next/server';
+import { db, errorResponse, isAuthenticated, unauthorized } from '../../../lib/server';
+export async function GET(){if(!await isAuthenticated())return unauthorized();try{const {data,error}=await db().from('customers').select('*').order('created_at',{ascending:false});if(error)throw error;return Response.json(data);}catch(e){return errorResponse(e);}}
+export async function POST(req:NextRequest){if(!await isAuthenticated())return unauthorized();try{const {name,industry,region,details}=await req.json();if(typeof name!=='string'||!name.trim()||name.length>100)return Response.json({error:'업체명을 확인하세요.'},{status:400});const {data,error}=await db().from('customers').insert({name:name.trim(),industry:String(industry||'').slice(0,100),region:String(region||'').slice(0,100),details:String(details||'').slice(0,2000)}).select().single();if(error)throw error;return Response.json(data);}catch(e){return errorResponse(e);}}
